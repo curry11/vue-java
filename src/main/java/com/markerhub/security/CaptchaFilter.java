@@ -28,6 +28,9 @@ public class CaptchaFilter extends OncePerRequestFilter {
 	@Autowired
 	LoginFailureHandler loginFailureHandler;
 
+	@Autowired
+	LoginFailCodeHandler loginFailCodeHandler;
+
 	@Override
 	protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
 
@@ -40,7 +43,7 @@ public class CaptchaFilter extends OncePerRequestFilter {
 				validate(httpServletRequest,httpServletResponse);
 			} catch (CaptchaException e) {
 				// 如果失败就交给认证失败处理器
-				loginFailureHandler.onAuthenticationFailure(httpServletRequest, httpServletResponse, e);
+				loginFailCodeHandler.onAuthenticationFailure(httpServletRequest, httpServletResponse, e);
 			}
 		}
 		//正确的就继续沿着链路走
@@ -55,31 +58,11 @@ public class CaptchaFilter extends OncePerRequestFilter {
 
 		if (StringUtils.isBlank(code) || StringUtils.isBlank(key)) {
 			throw new CaptchaException("验证码错误");
-//			response.setContentType("application/json;charset=UTF-8");
-//			ServletOutputStream outputStream = response.getOutputStream();
-//
-//			Result result = Result.fail("yan");
-//
-//			//把result 序列号成json格式
-//			outputStream.write(JSONUtil.toJsonStr(result).getBytes("UTF-8"));
-//
-//			outputStream.flush();
-//			outputStream.close();
 		}
 
 		//在redis中保存的数据记录比较
 		if (!code.equals(redisUtil.hget(Const.CAPTCHA_KEY, key))) {
 			throw new CaptchaException("验证码错误");
-//			response.setContentType("application/json;charset=UTF-8");
-//			ServletOutputStream outputStream = response.getOutputStream();
-//
-//			Result result = Result.fail("yan");
-//
-//			//把result 序列号成json格式
-//			outputStream.write(JSONUtil.toJsonStr(result).getBytes("UTF-8"));
-//
-//			outputStream.flush();
-//			outputStream.close();
 		}
 
 		// 一次性使用

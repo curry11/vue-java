@@ -30,7 +30,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // 生成jwt，并放置到请求头中
         String jwt = jwtUtils.generateToken(authentication.getName());
-        response.setHeader(jwtUtils.getHeader(), jwt);
+        response.setHeader(jwtUtils.getHeader(), jwt);  //getHeader 是配置文件中的Authorization
 
         Result result = Result.succ("");
 

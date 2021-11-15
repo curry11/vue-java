@@ -1,10 +1,9 @@
 package com.markerhub.config;
 
 
-import com.markerhub.security.CaptchaFilter;
-import com.markerhub.security.LoginFailureHandler;
-import com.markerhub.security.LoginSuccessHandler;
+import com.markerhub.security.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,6 +28,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	LoginSuccessHandler loginSuccessHandler;
 
+	@Autowired
+	JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+	@Autowired
+	JwtAccessDeniedHandler jwtAccessDeniedHandler;
+
+	@Bean  //因为重写了构造器
+	JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
+		JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager());
+		return jwtAuthenticationFilter;
+	}
 
 	private static final String[] URL_WHITELIST = {
 
@@ -68,12 +78,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				// 异常处理器
 				.and()
 				.exceptionHandling()
-//				.authenticationEntryPoint(jwtAuthenticationEntryPoint)
-//				.accessDeniedHandler(jwtAccessDeniedHandler)
+ 				.authenticationEntryPoint(jwtAuthenticationEntryPoint)  //jwt认证失败的处理器
+				.accessDeniedHandler(jwtAccessDeniedHandler)  //权限不足的处理器
 
 				// 配置自定义的过滤器  addFilterBefore 定义在哪个链路之前
 				.and()
-//				.addFilter(jwtAuthenticationFilter())
+				.addFilter(jwtAuthenticationFilter())
 				.addFilterBefore(captchaFilter, UsernamePasswordAuthenticationFilter.class);
 
 
