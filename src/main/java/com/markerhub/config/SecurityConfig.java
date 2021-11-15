@@ -5,11 +5,13 @@ import com.markerhub.security.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
@@ -34,10 +36,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
+	@Autowired
+	UserDetailServiceImpl userDetailService;
+
 	@Bean  //因为重写了构造器
 	JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
 		JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager());
 		return jwtAuthenticationFilter;
+	}
+
+	@Bean
+	BCryptPasswordEncoder bCryptPasswordEncoder () {//确定加密形式
+		return new BCryptPasswordEncoder();
 	}
 
 	private static final String[] URL_WHITELIST = {
@@ -46,7 +56,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			"/logout",
 			"/captcha",
 			"/favicon.ico",
-
+			"/test/pass",
 	};
 
 
@@ -85,9 +95,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.and()
 				.addFilter(jwtAuthenticationFilter())
 				.addFilterBefore(captchaFilter, UsernamePasswordAuthenticationFilter.class);
-
-
-
 	}
 
+	@Override  //配置登录的service  根据这个service进行密码验证
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.userDetailsService(userDetailService);
+	}
 }
